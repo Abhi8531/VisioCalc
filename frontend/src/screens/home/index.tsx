@@ -851,7 +851,7 @@ export default function Home() {
         ))}
 
       <div className="fixed bottom-2 right-2 text-black text-xs bg-white bg-opacity-70 px-2 py-1 rounded z-40 shadow-md dark:bg-gray-900 dark:text-white">
-        @ Abhi
+        VisioCalc © Abhi
       </div>
     </>
   );
