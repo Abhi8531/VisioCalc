@@ -580,20 +580,22 @@ export default function Home() {
         </div>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        id="canvas"
-        className="absolute top-0 left-0 w-full h-full touch-none"
-        style={{ background: backgroundColor }}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-      />
-
+     <div className="fixed top-0 left-0 w-full h-full overflow-auto">
+        <canvas
+          ref={canvasRef}
+          id="canvas"
+          className="absolute min-w-full min-h-full touch-none"
+          style={{ background: backgroundColor }}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseOut={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+        />
+      </div>
+      
       {latexExpression &&
         latexExpression.map((latex, index) => (
           <Draggable
