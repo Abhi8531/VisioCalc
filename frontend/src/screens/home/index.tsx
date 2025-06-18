@@ -45,6 +45,8 @@ export default function Home() {
     medium: 4,
     large: 8,
   };
+  // Add mobile menu state
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const COLOR_OPTIONS = [
     "#ffffff", // white
@@ -107,8 +109,13 @@ export default function Home() {
     if (canvas) {
       const ctx = canvas.getContext("2d");
       if (ctx) {
+        // Get the actual header height
+        const header = document.querySelector('.fixed.top-0');
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+        
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight - 80;
+        canvas.height = window.innerHeight - headerHeight;
+        canvas.style.top = `${headerHeight}px`;
         ctx.lineCap = "round";
         ctx.lineWidth = 3;
       }
@@ -212,18 +219,26 @@ export default function Home() {
     }
   }, [latexExpression, currentHistoryIndex]);
 
-  // Improved getCanvasCoords to use pageX/pageY for more robust positioning
+  // Fixed getCanvasCoords to properly handle cursor position without gap
   function getCanvasCoords(e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
     const rect = canvas.getBoundingClientRect();
     let x, y;
     if ('touches' in e) {
-      x = e.touches[0].pageX - rect.left - window.scrollX;
-      y = e.touches[0].pageY - rect.top - window.scrollY;
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
     } else {
-      x = (e as React.MouseEvent).pageX - rect.left - window.scrollX;
-      y = (e as React.MouseEvent).pageY - rect.top - window.scrollY;
+      x = (e as React.MouseEvent).clientX - rect.left;
+      y = (e as React.MouseEvent).clientY - rect.top;
     }
-    return { x, y };
+    
+    // Scale coordinates if canvas has CSS size different from actual size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    return { 
+      x: x * scaleX, 
+      y: y * scaleY 
+    };
   }
 
   // Update startDrawing and draw to use getCanvasCoords
@@ -405,7 +420,30 @@ export default function Home() {
     <>
       <div className="fixed top-0 left-0 w-full bg-gray-900 bg-opacity-70 backdrop-filter backdrop-blur-lg z-30 py-3">
         <div className="container mx-auto px-2 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          {/* Mobile Menu Button - Only visible on mobile */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="md:hidden p-2 text-white hover:bg-gray-700 rounded"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+
+          {/* Desktop controls - hidden on mobile */}
+          <div className="hidden md:flex items-center gap-2">
             <Button
               onClick={handleReset}
               className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -445,7 +483,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <div className="relative">
               <Button
                 onClick={() => setShowBgPalette(!showBgPalette)}
@@ -568,6 +606,59 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          {/* Mobile: Only show Reset, Colors and Go - Always visible */}
+          <div className="flex md:hidden items-center gap-2">
+            <Button
+              onClick={handleReset}
+              className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+              variant="default"
+              size="sm"
+            >
+              ♻️ Reset
+            </Button>
+            <div className="relative">
+              <Button
+                onClick={() => setShowColorPalette(!showColorPalette)}
+                className="px-2 py-1 bg-gray-700 text-white rounded text-xs"
+                variant="outline"
+                size="sm"
+              >
+                🎨
+              </Button>
+              {showColorPalette && (
+                <div className="absolute top-full right-0 mt-1 flex flex-wrap items-center justify-center gap-1 p-1 bg-gray-800 rounded-md max-w-[150px] z-50">
+                  {COLOR_OPTIONS.map((swatch: string) => {
+                    const isDisabled = swatch === backgroundColor;
+                    return (
+                      <ColorSwatch
+                        key={swatch}
+                        color={swatch}
+                        onClick={() => {
+                          if (!isDisabled) {
+                            setColor(swatch);
+                            setIsErasing(false);
+                            setShowEraserSizes(false);
+                          }
+                        }}
+                        style={{
+                          backgroundColor: swatch,
+                          width: "20px",
+                          height: "20px",
+                          borderRadius: "50%",
+                          border: color === swatch ? "2px solid white" : "1px solid gray",
+                          cursor: isDisabled ? "not-allowed" : "pointer",
+                          opacity: isDisabled ? 0.3 : 1,
+                        }}
+                        className="focus:outline-none hover:scale-110 transition-transform"
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
           <Button
             onClick={runRoute}
             className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -578,24 +669,151 @@ export default function Home() {
             {loading ? <Loader size="xs" color="white" /> : "Go"}
           </Button>
         </div>
+        
+        {/* Mobile Dropdown Menu */}
+        {showMobileMenu && (
+          <div className="md:hidden mt-2 px-2 py-3 bg-gray-800 rounded-lg mx-2">
+            <div className="space-y-3">
+              {/* Undo/Redo */}
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={revertToPreviousState}
+                  className={`flex-1 px-2 py-1 rounded text-xs ${
+                    currentHistoryIndex > 0 
+                      ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  }`}
+                  variant="default"
+                  size="sm"
+                  disabled={currentHistoryIndex <= 0}
+                >
+                  ↩️ Undo
+                </Button>
+                <Button
+                  onClick={redoToNextState}
+                  className={`flex-1 px-2 py-1 rounded text-xs ${
+                    currentHistoryIndex < history.latexExpressions.length - 1
+                      ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  }`}
+                  variant="default"
+                  size="sm"
+                  disabled={currentHistoryIndex >= history.latexExpressions.length - 1}
+                >
+                  ↪️ Redo
+                </Button>
+              </div>
+              
+              {/* Background Color */}
+              <div>
+                <Button
+                  onClick={() => setShowBgPalette(!showBgPalette)}
+                  className="w-full px-2 py-1 bg-gray-700 text-white rounded text-xs"
+                  variant="outline"
+                  size="sm"
+                >
+                  🖌️ Background Colour {showBgPalette ? "▲" : "▼"}
+                </Button>
+                {showBgPalette && (
+                  <div className="mt-2 flex flex-wrap items-center justify-center gap-1 p-2 bg-gray-700 rounded">
+                    {COLOR_OPTIONS.map((swatch: string) => (
+                      <ColorSwatch
+                        key={swatch}
+                        color={swatch}
+                        onClick={() => {
+                          setBackgroundColor(swatch);
+                          setShowBgPalette(false);
+                        }}
+                        style={{
+                          backgroundColor: swatch,
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "50%",
+                          border: backgroundColor === swatch ? "2px solid white" : "1px solid gray",
+                          cursor: "pointer",
+                        }}
+                        className="focus:outline-none hover:scale-110 transition-transform"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Eraser */}
+              <div>
+                <Button
+                  onClick={() => {
+                    setShowEraserSizes(!showEraserSizes);
+                    if (!isErasing) {
+                      setIsErasing(true);
+                    }
+                  }}
+                  className={`w-full px-2 py-1 rounded text-xs ${isErasing ? 'bg-yellow-400 text-black' : 'bg-gray-700 text-white'} hover:bg-yellow-300`}
+                  variant="outline"
+                  size="sm"
+                >
+                  🧹 Erase {showEraserSizes ? "▲" : "▼"}
+                </Button>
+                {showEraserSizes && (
+                  <div className="mt-2 flex items-center justify-center gap-1">
+                    {(['small', 'medium', 'large'] as const).map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => {
+                          setEraserSize(size);
+                        }}
+                        className={`flex-1 px-2 py-1 rounded text-center ${
+                          eraserSize === size ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-700'
+                        } text-xs font-semibold hover:bg-yellow-300 transition-colors`}
+                      >
+                        {size.charAt(0).toUpperCase() + size.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Pen Size */}
+              <div>
+                <p className="text-xs text-gray-300 mb-1">Pen Size:</p>
+                <div className="flex items-center gap-1">
+                  {(['small', 'medium', 'large'] as const).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => {
+                        setPenSize(size);
+                        setIsErasing(false);
+                        setShowEraserSizes(false);
+                      }}
+                      className={`flex-1 px-2 py-1 rounded ${penSize === size ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-700'} text-xs font-semibold border border-gray-300`}
+                    >
+                      {size.charAt(0).toUpperCase() + size.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-     <div className="fixed top-0 left-0 w-full h-full overflow-auto">
-        <canvas
-          ref={canvasRef}
-          id="canvas"
-          className="absolute min-w-full min-h-full touch-none"
-          style={{ background: backgroundColor }}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseOut={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
-        />
-      </div>
-      
+      <canvas
+        ref={canvasRef}
+        id="canvas"
+        className="absolute left-0 w-full touch-none"
+        style={{ 
+          background: backgroundColor,
+          cursor: 'crosshair'
+        }}
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseOut={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+      />
+
       {latexExpression &&
         latexExpression.map((latex, index) => (
           <Draggable
@@ -633,7 +851,7 @@ export default function Home() {
         ))}
 
       <div className="fixed bottom-2 right-2 text-black text-xs bg-white bg-opacity-70 px-2 py-1 rounded z-40 shadow-md dark:bg-gray-900 dark:text-white">
-        VisioCalc © Abhi
+        @ Abhi
       </div>
     </>
   );
