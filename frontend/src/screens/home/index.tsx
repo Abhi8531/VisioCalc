@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import Draggable from "react-draggable";
-import { SWATCHES } from "@/constants";
-// import {LazyBrush} from 'lazy-brush';
 
 interface GeneratedResult {
   expression: string;
