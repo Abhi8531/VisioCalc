@@ -5,17 +5,17 @@
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" />
   <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" />
 </div>
 
 ## 🌟 Overview
 
-VisioCalc is an innovative AI-powered mathematical calculation tool that transforms handwritten equations and drawings into solved mathematical expressions. Simply draw mathematical expressions on the canvas, and let AI handle the calculations!
+VisioCalc is an innovative AI-powered mathematical calculation tool that transforms handwritten equations and drawings into solved mathematical expressions. Simply draw mathematical expressions on the canvas, and let OpenAI handle the calculations!
 
 ## ✨ Features
 
 - **🖌️ Interactive Canvas**: Draw mathematical expressions naturally with your mouse or touch device
-- **🤖 AI-Powered Recognition**: Uses Google Gemini AI to recognize and solve mathematical expressions
+- **🤖 AI-Powered Recognition**: Uses OpenAI to recognize and solve mathematical expressions
 - **🧮 Advanced Calculations**: Supports complex mathematical operations following PEMDAS rules
 - **📊 Variable Support**: Store and use variables across multiple calculations
 - **🎨 Customizable Interface**:
@@ -45,7 +45,7 @@ VisioCalc is an innovative AI-powered mathematical calculation tool that transfo
 ### Backend
 
 - **Node.js** with Express.js
-- **Google Generative AI (Gemini)** for image recognition and calculation
+- **OpenAI API** for image recognition and calculation
 - **CORS** enabled for cross-origin requests
 - **Cookie Parser** for session management
 
@@ -55,7 +55,7 @@ VisioCalc is an innovative AI-powered mathematical calculation tool that transfo
 
 - Node.js (v16 or higher)
 - npm or yarn
-- Google Gemini API key
+- OpenAI API key
 
 ### Installation
 
@@ -88,7 +88,7 @@ VisioCalc is an innovative AI-powered mathematical calculation tool that transfo
    ```env
    PORT=3000
    CLIENT_URL=http://localhost:5173
-   GENERATIVEAI_API_KEY=your_open_ AI_api_key_here
+       OPENAI_API_KEY=your_openai_api_key_here
    ```
 
    Create a `.env` file in the frontend directory:
@@ -188,7 +188,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Google Gemini AI for powerful image recognition capabilities
+- OpenAI for powerful image recognition capabilities
 - MathJax for beautiful mathematical notation rendering
 - The React and Node.js communities for excellent tools and libraries
 
